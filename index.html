@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculateur de tarifs UGC — YouGC Academy</title>
+  <style>
+    :root{
+      --bg:#fff9fb;
+      --card:#ffffff;
+      --text:#1c181b;
+      --muted:#766b72;
+      --line:#ecdfe5;
+      --pink:#efbfd1;
+      --pink-soft:#fae7ee;
+      --lilac:#eee8fb;
+      --dark:#1c191b;
+      --ok:#547d67;
+      --warn:#a66048;
+      --shadow:0 18px 50px rgba(70,35,56,.10);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 0% 0%,rgba(250,231,238,.95),transparent 30%),
+        radial-gradient(circle at 100% 100%,rgba(238,232,251,.75),transparent 30%),
+        var(--bg);
+    }
+
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+
+    .app{
+      width:min(1120px,calc(100% - 20px));
+      margin:0 auto;
+      padding:18px 0 30px;
+    }
+
+    .shell{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(255,255,255,.95);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .header{
+      padding:26px 28px 22px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .eyebrow{
+      display:block;
+      margin-bottom:7px;
+      color:#8d5d71;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(29px,4vw,43px);
+      line-height:1.02;
+      letter-spacing:-.04em;
+    }
+
+    .header p{
+      margin:10px 0 0;
+      color:var(--muted);
+      line-height:1.55;
+      max-width:730px;
+    }
+
+    .tag{
+      flex:none;
+      padding:9px 13px;
+      background:var(--pink-soft);
+      color:#6f4055;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.45fr) minmax(315px,.8fr);
+      gap:22px;
+      padding:24px;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:22px;
+      min-width:0;
+    }
+
+    .result{
+      position:sticky;
+      top:16px;
+      height:max-content;
+    }
+
+    .section-title{
+      margin:2px 0 16px;
+      font-size:15px;
+      font-weight:900;
+    }
+
+    .two{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+      margin-bottom:17px;
+      min-width:0;
+    }
+
+    label{
+      font-size:13px;
+      font-weight:850;
+      line-height:1.25;
+    }
+
+    .hint{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+
+    input,select,textarea{
+      width:100%;
+      min-height:48px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:#fff;
+      color:var(--text);
+      padding:12px 14px;
+      outline:none;
+      line-height:1.25;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--pink);
+      box-shadow:0 0 0 4px rgba(239,191,209,.17);
+    }
+
+    textarea{
+      min-height:88px;
+      resize:vertical;
+    }
+
+    .money{
+      position:relative;
+    }
+    .money input{padding-right:40px}
+    .money span{
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      font-weight:900;
+    }
+
+    .base-card{
+      margin:0 0 18px;
+      padding:15px 16px;
+      border-radius:16px;
+      background:linear-gradient(135deg,var(--pink-soft),#fff);
+      border:1px solid #f0d7e1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+    }
+
+    .base-card span{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .base-card strong{
+      font-size:26px;
+      letter-spacing:-.03em;
+      white-space:nowrap;
+    }
+
+    .choice-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .choice{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height:58px;
+      padding:12px 13px;
+      border:1px solid var(--line);
+      border-radius:15px;
+      background:#fff;
+      transition:.18s ease;
+      user-select:none;
+    }
+
+    .choice:hover{border-color:var(--pink)}
+    .choice.active{
+      background:linear-gradient(135deg,var(--pink-soft),#fff);
+      border-color:#d999b2;
+    }
+
+    .choice input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .choice-main{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      min-width:0;
+    }
+
+    .dot{
+      width:26px;
+      height:26px;
+      border-radius:50%;
+      background:#f6f1f4;
+      display:grid;
+      place-items:center;
+      flex:none;
+      color:transparent;
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .choice.active .dot{
+      background:var(--dark);
+      color:white;
+    }
+
+    .choice-name{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.2;
+    }
+
+    .choice-price{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:850;
+      white-space:nowrap;
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .mini{
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+
+    .mini label{
+      display:block;
+      margin-bottom:6px;
+      font-size:12px;
+    }
+
+    .mini input{
+      min-height:42px;
+      padding:9px 11px;
+    }
+
+    .conditional{
+      display:none;
+      margin-top:10px;
+      padding:14px;
+      border-radius:15px;
+      background:#fcfafb;
+      border:1px dashed #dfcdd5;
+    }
+
+    .conditional.visible{display:block}
+
+    .result-label{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .total{
+      margin:8px 0 2px;
+      font-size:clamp(42px,5vw,60px);
+      line-height:1;
+      font-weight:950;
+      letter-spacing:-.05em;
+    }
+
+    .from{
+      margin-bottom:18px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .divider{
+      height:1px;
+      background:var(--line);
+      margin:18px 0;
+    }
+
+    .rows{
+      display:grid;
+      gap:12px;
+    }
+
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .row strong{
+      color:var(--text);
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    .callout{
+      margin-top:18px;
+      padding:15px 16px;
+      border-radius:16px;
+      background:linear-gradient(135deg,var(--pink-soft),var(--lilac));
+      color:#684657;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .copy{
+      width:100%;
+      min-height:48px;
+      margin-top:16px;
+      border:0;
+      border-radius:14px;
+      background:var(--dark);
+      color:#fff;
+      font-weight:900;
+    }
+
+    .copy:hover{opacity:.92}
+
+    .status{
+      min-height:18px;
+      margin:9px 0 0;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .source-note{
+      margin-top:18px;
+      font-size:10.5px;
+      line-height:1.45;
+      color:var(--muted);
+    }
+
+    @media(max-width:880px){
+      .layout{grid-template-columns:1fr}
+      .result{position:static}
+    }
+
+    @media(max-width:620px){
+      .app{width:min(100% - 8px,1120px);padding:4px 0}
+      .shell{border-radius:20px}
+      .header{padding:18px;flex-direction:column}
+      .layout{padding:12px}
+      .panel{padding:16px}
+      .two,.choice-grid,.mini-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="shell">
+      <header class="header">
+        <div>
+          <span class="eyebrow">YouGC Academy</span>
+          <h1>💸 Calculateur de tarifs UGC</h1>
+          <p>Calcule ton tarif minimum à partir du barème de la formation, puis ajoute les droits d’utilisation et les suppléments réellement demandés par la marque.</p>
+        </div>
+        <div class="tag">À partir de…</div>
+      </header>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="section-title">1. Ta prestation de base</div>
+
+          <div class="two">
+            <div class="field">
+              <label for="contentType">Type de contenu</label>
+              <select id="contentType">
+                <option value="video">Vidéo UGC</option>
+                <option value="photo">Photos UGC</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="experience">Ton expérience</label>
+              <select id="experience">
+                <option value="beginner">Je n’ai jamais créé de contenu</option>
+                <option value="experienced">J’ai déjà créé du contenu</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="quantity">Nombre de contenus</label>
+            <select id="quantity">
+              <option value="1">1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+            <div class="hint">Le support de formation fournit précisément les tarifs pour 1, 3, 5 ou 10 contenus.</div>
+          </div>
+
+          <div class="base-card">
+            <span>Tarif organique minimum selon le barème</span>
+            <strong id="baseDisplay">100 € HT</strong>
+          </div>
+
+          <div class="section-title">2. Droits d’utilisation</div>
+
+          <div class="field">
+            <label for="usageType">Utilisation du contenu</label>
+            <select id="usageType">
+              <option value="organic">Organique uniquement — inclus</option>
+              <option value="ads">ADS classique / cession de droits</option>
+              <option value="spark">Spark Ads / Dark Posting</option>
+            </select>
+          </div>
+
+          <div class="conditional" id="adsBox">
+            <div class="field" style="margin-bottom:0">
+              <label for="adsQuarters">Durée d’exploitation ADS</label>
+              <select id="adsQuarters">
+                <option value="1">3 mois — +30 %</option>
+                <option value="2">6 mois — +60 %</option>
+                <option value="3">9 mois — +90 %</option>
+                <option value="4">12 mois — +120 %</option>
+              </select>
+              <div class="hint">+30 % du tarif organique de base par trimestre. Pas de durée indéterminée.</div>
+            </div>
+          </div>
+
+          <div class="conditional" id="sparkBox">
+            <div class="two">
+              <div class="field" style="margin-bottom:0">
+                <label for="sparkMonths">Durée sponsorisée</label>
+                <select id="sparkMonths">
+                  <option value="1">1 mois</option>
+                  <option value="2">2 mois</option>
+                  <option value="3">3 mois</option>
+                  <option value="4">4 mois</option>
+                  <option value="5">5 mois</option>
+                  <option value="6">6 mois</option>
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label for="sparkDiscount">Remise forfait 3 mois</label>
+                <select id="sparkDiscount">
+                  <option value="0">Aucune remise</option>
+                  <option value="5">-5 % sur les droits</option>
+                  <option value="10">-10 % sur les droits</option>
+                </select>
+              </div>
+            </div>
+            <div class="hint">Spark Ads / Dark Posting : +50 % du tarif de base par mois. Le support propose éventuellement un forfait 3 mois avec -5 % ou -10 %.</div>
+          </div>
+
+          <div class="section-title" style="margin-top:22px">3. Suppléments</div>
+
+          <div class="choice-grid" id="choiceGrid"></div>
+
+          <div class="conditional visible" style="margin-top:14px">
+            <div class="mini-grid">
+              <div class="mini">
+                <label for="scriptCount">Nombre de scripts (+40 € / script)</label>
+                <input id="scriptCount" type="number" min="0" max="50" value="0">
+              </div>
+              <div class="mini">
+                <label for="hookCount">Hooks / CTA supplémentaires (+40 € / ajout)</label>
+                <input id="hookCount" type="number" min="0" max="50" value="0">
+              </div>
+              <div class="mini">
+                <label for="revisionCount">Révisions supplémentaires (+40 € / ajout)</label>
+                <input id="revisionCount" type="number" min="0" max="50" value="0">
+              </div>
+              <div class="mini">
+                <label for="actorCount">Acteurs supplémentaires (+100 € / personne)</label>
+                <input id="actorCount" type="number" min="0" max="20" value="0">
+              </div>
+              <div class="mini">
+                <label for="animalCount">Animaux (+50 € / animal)</label>
+                <input id="animalCount" type="number" min="0" max="20" value="0">
+              </div>
+              <div class="mini">
+                <label for="extraCosts">Déplacement / conso / frais réels</label>
+                <div class="money">
+                  <input id="extraCosts" type="number" min="0" max="100000" step="5" value="0">
+                  <span>€</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:18px;margin-bottom:0">
+            <label for="notes">Notes facultatives</label>
+            <textarea id="notes" placeholder="Ex. brief complexe, demande spécifique, conditions négociées…"></textarea>
+          </div>
+        </section>
+
+        <aside class="panel result">
+          <div class="result-label">Estimation minimum</div>
+          <div class="total" id="grandTotal">100 €</div>
+          <div class="from">HT • à ajuster selon le brief</div>
+
+          <div class="divider"></div>
+
+          <div class="rows">
+            <div class="row"><span>Tarif organique</span><strong id="baseTotal">100 €</strong></div>
+            <div class="row"><span>Droits d’utilisation</span><strong id="rightsTotal">0 €</strong></div>
+            <div class="row"><span>Suppléments</span><strong id="extrasTotal">0 €</strong></div>
+          </div>
+
+          <div class="callout" id="advice">
+            💗 Pense bien à la notion « À partir de… » : ce calcul donne un tarif minimum, pas un plafond.
+          </div>
+
+          <button class="copy" id="copyBtn">📋 Copier le récapitulatif</button>
+          <div class="status" id="status"></div>
+
+          <div class="source-note">
+            Barème repris du support YouGC Academy « L’art de la négociation ». Les pourcentages ADS sont calculés sur le tarif organique de base.
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const rates = {
+    video: {
+      beginner: {1:100,3:285,5:450,10:850},
+      experienced:{1:150,3:425,5:675,10:1275}
+    },
+    photo:{
+      beginner:{1:35,3:95,5:140,10:280},
+      experienced:{1:50,3:130,5:200,10:400}
+    }
+  };
+
+  const options = [
+    {id:"montage", name:"Montage", priceText:"+50 € / vidéo", type:"perVideo", amount:50, videoOnly:true, beginnerVideoOnly:true},
+    {id:"rushes", name:"Envoi des rushs", priceText:"+50 % du prix de base", type:"baseRate", rate:.50},
+    {id:"fast", name:"Livraison rapide 48 h", priceText:"+50 €", type:"flat", amount:50},
+    {id:"subtitles", name:"Sous-titres", priceText:"+20 €", type:"flat", amount:20},
+    {id:"resize", name:"Redimensionnement format", priceText:"+20 €", type:"flat", amount:20},
+    {id:"location", name:"Lieu spécifique / extérieur", priceText:"+50 € min.", type:"flat", amount:50}
+  ];
+
+  const grid = $("choiceGrid");
+
+  options.forEach(opt => {
+    const label = document.createElement("label");
+    label.className = "choice";
+    label.dataset.option = opt.id;
+    label.innerHTML = `
+      <input type="checkbox" id="opt_${opt.id}">
+      <span class="choice-main">
+        <span class="dot">✓</span>
+        <span class="choice-name">${opt.name}</span>
+      </span>
+      <span class="choice-price">${opt.priceText}</span>
+    `;
+    grid.appendChild(label);
+    label.querySelector("input").addEventListener("change", (e) => {
+      label.classList.toggle("active", e.target.checked);
+      calculate();
+    });
+  });
+
+  function clampNumber(id, min=0, max=100000){
+    const el = $(id);
+    let n = Number(el.value);
+    if(!Number.isFinite(n)) n = min;
+    n = Math.min(max, Math.max(min, n));
+    el.value = n;
+    return n;
+  }
+
+  function money(v){
+    return new Intl.NumberFormat("fr-FR",{
+      style:"currency",
+      currency:"EUR",
+      maximumFractionDigits:2
+    }).format(v || 0);
+  }
+
+  function basePrice(){
+    return rates[$("contentType").value][$("experience").value][Number($("quantity").value)];
+  }
+
+  function syncConditionalUI(){
+    const usage = $("usageType").value;
+    $("adsBox").classList.toggle("visible", usage === "ads");
+    $("sparkBox").classList.toggle("visible", usage === "spark");
+
+    const isBeginnerVideo = $("contentType").value === "video" && $("experience").value === "beginner";
+    const montageLabel = grid.querySelector('[data-option="montage"]');
+    const montageInput = $("opt_montage");
+
+    if(montageLabel){
+      montageLabel.style.display = isBeginnerVideo ? "flex" : "none";
+      if(!isBeginnerVideo){
+        montageInput.checked = false;
+        montageLabel.classList.remove("active");
+      }
+    }
+  }
+
+  function calculate(){
+    syncConditionalUI();
+
+    const base = basePrice();
+    const qty = Number($("quantity").value);
+    const usage = $("usageType").value;
+
+    let rights = 0;
+    let rightsLabel = "Organique — inclus";
+
+    if(usage === "ads"){
+      const quarters = Number($("adsQuarters").value);
+      rights = base * 0.30 * quarters;
+      rightsLabel = `ADS classique — ${quarters * 3} mois (+${quarters * 30} %)`;
+    }
+
+    if(usage === "spark"){
+      const months = Number($("sparkMonths").value);
+      const discount = Number($("sparkDiscount").value);
+      rights = base * 0.50 * months;
+      if(months === 3 && discount > 0){
+        rights = rights * (1 - discount / 100);
+      }
+      rightsLabel = `Spark Ads / Dark Posting — ${months} mois (+50 %/mois${months===3 && discount ? `, remise ${discount} % sur les droits` : ""})`;
+    }
+
+    let extras = 0;
+    const selected = [];
+
+    options.forEach(opt => {
+      const input = $("opt_" + opt.id);
+      if(!input || !input.checked) return;
+
+      let amount = 0;
+      if(opt.type === "flat") amount = opt.amount;
+      if(opt.type === "perVideo") amount = opt.amount * qty;
+      if(opt.type === "baseRate") amount = base * opt.rate;
+
+      extras += amount;
+      selected.push(`${opt.name} (${money(amount)})`);
+    });
+
+    const scripts = clampNumber("scriptCount",0,50);
+    const hooks = clampNumber("hookCount",0,50);
+    const revisions = clampNumber("revisionCount",0,50);
+    const actors = clampNumber("actorCount",0,20);
+    const animals = clampNumber("animalCount",0,20);
+    const other = clampNumber("extraCosts",0,100000);
+
+    if(scripts){ extras += scripts * 40; selected.push(`${scripts} script(s) (${money(scripts*40)})`); }
+    if(hooks){ extras += hooks * 40; selected.push(`${hooks} hook(s)/CTA (${money(hooks*40)})`); }
+    if(revisions){ extras += revisions * 40; selected.push(`${revisions} révision(s) supplémentaire(s) (${money(revisions*40)})`); }
+    if(actors){ extras += actors * 100; selected.push(`${actors} acteur(s) supplémentaire(s) (${money(actors*100)})`); }
+    if(animals){ extras += animals * 50; selected.push(`${animals} animal/animaux (${money(animals*50)})`); }
+    if(other){ extras += other; selected.push(`Frais réels (${money(other)})`); }
+
+    const total = base + rights + extras;
+
+    $("baseDisplay").textContent = `${money(base)} HT`;
+    $("baseTotal").textContent = money(base);
+    $("rightsTotal").textContent = money(rights);
+    $("extrasTotal").textContent = money(extras);
+    $("grandTotal").textContent = money(total);
+
+    if(usage === "spark"){
+      $("advice").textContent = "✨ Spark Ads / Dark Posting : les droits sont calculés à +50 % du tarif de base par mois d’utilisation sponsorisée.";
+    } else if(usage === "ads"){
+      $("advice").textContent = "📣 ADS classique : ajoute +30 % du tarif de base par trimestre d’exploitation. Ne cède pas tes droits pour une durée indéterminée.";
+    } else {
+      $("advice").textContent = "💗 Pense bien à la notion « À partir de… » : ce calcul donne un tarif minimum, pas un plafond.";
+    }
+
+    return {
+      base, rights, extras, total, rightsLabel, selected,
+      contentType: $("contentType").value === "video" ? "Vidéo UGC" : "Photos UGC",
+      experience: $("experience").value === "beginner" ? "Première création de contenu" : "Déjà de l’expérience en création",
+      quantity: qty,
+      notes: $("notes").value.trim()
+    };
+  }
+
+  function makeSummary(data){
+    return [
+      "💸 CALCUL TARIF UGC",
+      "",
+      `Type : ${data.contentType}`,
+      `Expérience : ${data.experience}`,
+      `Quantité : ${data.quantity}`,
+      `Tarif organique : ${money(data.base)} HT`,
+      `Droits : ${data.rightsLabel} = ${money(data.rights)}`,
+      data.selected.length ? `Suppléments : ${data.selected.join(" • ")}` : "Suppléments : aucun",
+      "",
+      `TOTAL MINIMUM : ${money(data.total)} HT`,
+      "",
+      "Tarif indicatif « à partir de… »",
+      data.notes ? `Notes : ${data.notes}` : ""
+    ].filter(Boolean).join("\n");
+  }
+
+  async function copyText(text){
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+
+  ["contentType","experience","quantity","usageType","adsQuarters","sparkMonths","sparkDiscount",
+   "scriptCount","hookCount","revisionCount","actorCount","animalCount","extraCosts","notes"]
+    .forEach(id => {
+      $(id).addEventListener("input", calculate);
+      $(id).addEventListener("change", calculate);
+    });
+
+  $("copyBtn").addEventListener("click", async () => {
+    try{
+      await copyText(makeSummary(calculate()));
+      $("status").textContent = "Récapitulatif copié ✅";
+    }catch(e){
+      $("status").textContent = "Impossible de copier automatiquement.";
+    }
+  });
+
+  calculate();
+})();
+</script>
+</body>
+</html>
